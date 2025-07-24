@@ -40,13 +40,24 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()  // register ve login'e izin ver
+
+                        // GET ürünleri herkes görebilir
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
+
+                        // Sadece ADMIN rolü POST, PUT, DELETE yapabilir
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+
+                        // Diğer tüm istekler authentication gerektirir
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())  // 👈 BURASI EKSİKTİ
+                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();

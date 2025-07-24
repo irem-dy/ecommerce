@@ -1,6 +1,9 @@
 package com.ecommerceapp.ecommerce.service.impl;
 
+import com.ecommerceapp.ecommerce.dto.ProductCreateRequest;
+import com.ecommerceapp.ecommerce.entity.Category;
 import com.ecommerceapp.ecommerce.entity.Product;
+import com.ecommerceapp.ecommerce.repo.CategoryRepository;
 import com.ecommerceapp.ecommerce.repo.ProductRepository;
 import com.ecommerceapp.ecommerce.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +14,26 @@ import java.util.List;
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+
     @Autowired
-    private ProductRepository productRepository;
+    public ProductServiceImpl(ProductRepository productRepository,
+                              CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+    }
 
     @Override
-    public Product createProduct(Product product) {
+    public Product createProduct(ProductCreateRequest request) {
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Kategori bulunamadı"));
+
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setCategory(category);
+
         return productRepository.save(product);
     }
 
